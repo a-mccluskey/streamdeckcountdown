@@ -12,6 +12,9 @@
 		<div type="select" class="sdpi-item">
 			<div class="sdpi-item-label">Face</div>
 			<select class="sdpi-item-value select clockSelector" onchange="sendValueToPlugin(Number(event.target.value), 'clock_index')">
+			</select><br>
+			<div class="sdpi-item-label">Timer Type</div>
+			<select class="sdpi-item-value select timerSelector" onchange="sendValueToPlugin(Number(event.target.value), 'timerIndex')">
 			</select>
 		</div>
 	</div>
@@ -52,6 +55,19 @@
 					})
 
 				}
+				if (jsonObj.payload.hasOwnProperty('timerIndex')) {
+					const oTypeSelector = document.querySelector(".timerSelector");
+					const valT = Math.round(jsonObj.payload['timerIndex']);
+					oClockSelector && Array.prototype.forEach.call(oTypeSelector.options, function (o) {
+						o.label = localize(o.label);
+						if (o.value !== val) {
+							oTypeSelector.value = valT;
+						}
+					})
+
+				}//ifhasproptype
+				
+				
 			}
 		}
 
@@ -73,7 +89,17 @@
 				option.setAttribute('label', localize(clockfaces[e].name));
 				oClockSelector.appendChild(option);
 			});
-
+			
+			const oTypeSelector = document.querySelector(".timerSelector");
+			Object.keys(timerTypes).map(e => {
+				let option = document.createElement('option');
+				option.setAttribute('value', e);
+				option.setAttribute('label', localize(timerTypes[e].name));
+				oTypeSelector.appendChild(option);
+			});//Populate the second dropdown box
+			
+			
+			
 
 			// request some data from the plugin (e.g. the current clockface of the clock)
 			var payload = {
@@ -89,7 +115,7 @@
 
 		function sendValueToPlugin(value, param) {
 
-			console.log("SENDING VALUE TO PLUGIN: ", value, uuid, actionInfo);
+			console.log("SENDING VALUE TO PLUGIN: ", value, param, actionInfo);
 
 			if ($SD && $SD.connection) {
 				var payload = {};

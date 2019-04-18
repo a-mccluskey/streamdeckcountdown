@@ -24,9 +24,12 @@ function Clock(cnv)
 	var clockY = cnv.height / 2;
 	var twoPi = 2 * Math.PI;
 	var colors = {};
+	var arcColour = "#FFF";
+	var max_ms = 300000, cur_ms = 300000;
 	
-	const max_ms = 300000;
-	var cur_ms = max_ms;
+	
+	//const max_ms = 300000;
+	//var cur_ms = max_ms;
 	
 	resetColors();
 
@@ -90,8 +93,8 @@ function Clock(cnv)
 	function drawClock() 
 	{
 		
-		ctx.fillStyle = colors.background;
-    	ctx.fillRect(0, 0, cnv.width, cnv.height);
+	ctx.fillStyle = colors.background;
+    ctx.fillRect(0, 0, cnv.width, cnv.height);
 	var centreY = cnv.width / 2;
 	var centreX = cnv.height / 2;
 	//the html page has already set the size of the canvas, we need to work on
@@ -114,7 +117,7 @@ function Clock(cnv)
 	ctx.beginPath();
 	ctx.arc(centreX, centreY, radius, lineStartRad, lineFinishRad, false);
 	//canvmethods.closePath();
-	ctx.strokeStyle = "#AAF";
+	ctx.strokeStyle = arcColour;
 
 	
 	/* arc() expects radians as the angles, yes proper mathmatians would see this as heresy :-D but degrees are an 
@@ -147,12 +150,25 @@ function Clock(cnv)
 	{
 		cur_ms=max_ms;
 	}
+	function setType(jsnType)
+	{
+		(typeof jsnType === 'object') && Object.keys(jsnType).map(arcColour = jsnType);
+		arcColour=jsnType;
+	}
+	function setTimer(jsnTime)
+	{
+		(typeof jsnTime === 'object') && Object.keys(jsnTime).map(max_ms = jsnTime);
+		cur_ms = max_ms;
+		max_ms=jsnTime;
+	}
 
 	return {
 		drawClock: drawClock,
 		getImageData: getImageData,
 		setColors: setColors,
 		getColors: getColors,
+		setType: setType,
+		setTimer: setTimer,
 		colors: colors,
 		resetCountdown: resetCountdown,
 		resetColors: resetColors

@@ -17,7 +17,7 @@ var clockfaces = [
             minute: '#33ffdd',
             second: '#ffff00',
             stroke: '#ff0000',
-            background: '#00cc88'
+            background: '#006600'
         },
         text: true
     },
@@ -28,18 +28,18 @@ var clockfaces = [
             minute: '#cccccc',
             second: '#ff9933',
             stroke: '#cccccc',
-            background: '#141480'
+            background: '#211143'
         },
         text: true
     },
     {
-        name: 'White',
+        name: 'Whiteish',
         colors: {
             hour:	'#111111',
             minute: '#222222',
             second: '#ff0000',
             stroke: '#666666',
-            background: '#ffffff'
+            background: '#777777'
         },
         text: true
     },
@@ -50,7 +50,7 @@ var clockfaces = [
             minute: '#0033ff',
             second: '#aaaaff',
             stroke: '#ffff00',
-            background: '#3366ee'
+            background: '#000055'
         },
         text: true
     },
@@ -61,7 +61,7 @@ var clockfaces = [
             minute: '#ffcc00',
             second: '#ffaaaa',
             stroke: '#00ffff',
-            background: '#de2200'
+            background: '#660000'
         },
         text: true
     }
@@ -77,5 +77,28 @@ var clockfaces = [
     //     text: true,
     //     demo: true
     // }
+
+];
+var timerTypes = [
+	{
+		name: 'Test',
+		max_time: 120000,
+		arcColour: "#FFFFFF"
+	},
+	{
+		name: 'Hydration',
+		max_time: 1200000,
+		arcColour: "#0000DD"
+	},
+	{
+		name: 'Eyestrain',
+		max_time: 1200000,
+		arcColour: "#00DD00"
+	},
+	{
+		name: 'Stretch',
+		max_time: 3600000,
+		arcColour: "#DD0000"
+	}
 
 ];

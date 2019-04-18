@@ -22,6 +22,7 @@ function connected (jsn) {
 var action = {
     type: 'com.adm.cdwn.action',
     cache: {},
+	
 
     getContextFromCache: function (ctx) {
         return this.cache[ctx];
@@ -32,9 +33,12 @@ var action = {
         if (!jsn.payload || !jsn.payload.hasOwnProperty('settings')) return;
 
         const clockIndex = jsn.payload.settings['clock_index'] || 0;
+		var timerTypeIdx = jsn.payload.settings['timerIndex'] || 0;
+		//var 
         const clock = new AnalogClock(jsn);
 
         clock.setClockFaceNum(clockIndex);
+		clock.setClockTypeNum(timerTypeIdx);
         clock.toggleClock();
 
         // cache the current clock
@@ -69,9 +73,10 @@ var action = {
     },
 
     onSendToPlugin: function (jsn) {
-        // console.log('--- OnSendToPlugin ---', jsn, jsn.payload);
+        //console.log('--- OnSendToPlugin ---', jsn, jsn.payload);
         if (!jsn.payload) return;
         let clockIndex = 0;
+		let timerIDX = 0;
         const clock = this.getContextFromCache(jsn.context);
 
         if (jsn.payload.hasOwnProperty('DATAREQUEST')) {
@@ -84,25 +89,40 @@ var action = {
 
             $SD.api.sendToPropertyInspector(
                 jsn.context,
-                { clock_index: clockIndex },
+                { clock_index: clockIndex,
+				timerType: timerIDX },
                 this.type
             );
-        } else if (jsn.payload.hasOwnProperty('clock_index')) { /* if there's no clock-definitions, so simply do nothing */
-            /* set the appropriate clockface index as choosen from the popupmenu in PI */
-            const clockIdx = Number(jsn.payload['clock_index']);
-
-            $SD.api.setSettings(jsn.context, {
-                context: jsn.context,
-                clock_index: clockIdx
-            });
+        } else { 
+			if (jsn.payload.hasOwnProperty('clock_index')) { /* if there's no clock-definitions, so simply do nothing */
+				/* set the appropriate clockface index as choosen from the popupmenu in PI */
+				const clockIdx = Number(jsn.payload['clock_index']);
+				$SD.api.setSettings(jsn.context, {
+					context: jsn.context,
+					clock_index: clockIdx
+				});
 
             if (clock) {
                 clock.setClockFaceNum(clockIdx);
                 this.cache[jsn.context] = clock;
-            }
-        }
+            } }//ifJSNhasOWNprop
+			if(jsn.payload.hasOwnProperty('timerIndex')) {
+				console.log("got the updated PI event");
+				$SD.api.setSettings(jsn.context, {
+					context: jsn.context,
+					timerType: Number(jsn.payload['timerIndex'])
+				});
+				if (clock) { //if the clock exists, update the clocktype number
+				console.log("clock exists, updating type");
+					clock.setClockTypeNum(Number(jsn.payload['timerIndex']));
+					this.cache[jsn.context] = clock; //save the clock
+				}					
+			}//ifJSNpropTimertype
+			
+			}//else
     }
 };
+
 
 function AnalogClock (jsonObj) {
     var jsn = jsonObj,
@@ -111,6 +131,8 @@ function AnalogClock (jsonObj) {
         clock = null,
         clockface = clockfaces[0],
         currentClockFaceIdx = 0,
+		timerType = timerTypes[0],
+		timerTypeIdx = 0,
         origContext = jsonObj.context,
         canvas = null,
         demo = false,
@@ -127,6 +149,9 @@ function AnalogClock (jsonObj) {
         canvas.height = 144;
         clock = new Clock(canvas);
         clock.setColors(clockface.colors);
+		
+		clock.setTimer(timerTypes[timerTypeIdx].max_time);
+		clock.setType(timerTypes[timerTypeIdx].arcColour);
     }
 	
 	function resetCountdown() {
@@ -194,6 +219,34 @@ function AnalogClock (jsonObj) {
         this.currentClockFaceIdx = currentClockFaceIdx;
         setClockFace(clockfaces[currentClockFaceIdx], isDemo);
     }
+	
+	
+	
+	
+	
+	function setClockType (newTimerType) {
+		/*a new timer type has been selected from the PI*/
+        let timerType = newTimerType;
+        clock.setType(timerType.arcColour);
+		clock.setTimer(timerType.max_time);
+		clock.resetCountdown();
+        drawClock();
+    }
+
+    function setClockTypeNum (idx) {
+		/*get the index number of the clock type*/
+        let currentClockTypeIdx= idx < timerTypes.length ? idx : 0;
+        this.timerTypeIdx = currentClockTypeIdx;
+        setClockType(timerTypes[currentClockTypeIdx]);
+    }
+	
+	
+	
+	
+	
+	
+	
+	
 
     function destroyClock () {
         if (clockTimer !== 0) {
@@ -215,6 +268,8 @@ function AnalogClock (jsonObj) {
         origContext: origContext,
         setClockFace: setClockFace,
         setClockFaceNum: setClockFaceNum,
+		setClockType: setClockType,
+		setClockTypeNum: setClockTypeNum,
         destroyClock: destroyClock,
         demo: demo,
 		resetCountdown: resetCountdown,
