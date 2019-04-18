@@ -20,7 +20,7 @@
   "Name": "Countydown clock",
   "Icon": "pluginIcon",
   "URL": "https://github.com/a-mccluskey/streamdeckcountdown",
-  "Version": "1.0",
+  "Version": "0.2",
   "OS": [
     {
       "Platform": "mac",
