@@ -4,6 +4,7 @@ V0.2
 
 A continuation of the javascript project twitchlightdash. Is pre-release type software, but it works. Currently a countdown timer that resets everytime the button is pressed.
 Based on the analog clock example from elgato's SDK.
+![Example Usage](https://raw.githubusercontent.com/a-mccluskey/streamdeckcountdown/master/Demo.png)
 
 There are three main settings, hydration & eyestrain - counts down for 20 mins with a blue and green semicircle, and a stretch - countsdown for 60 mins with a red needle.
 
