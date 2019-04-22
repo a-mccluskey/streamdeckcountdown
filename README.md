@@ -1,12 +1,15 @@
 # streamdeckcountdown
 
-V0.2
+V0.4
 
 A continuation of the javascript project twitchlightdash. Is pre-release type software, but it works. Currently a countdown timer that resets everytime the button is pressed.
 Based on the analog clock example from elgato's SDK.
 ![Example Usage](https://raw.githubusercontent.com/a-mccluskey/streamdeckcountdown/master/Demo.png)
 
 There are three main settings, hydration & eyestrain - counts down for 20 mins with a blue and green semicircle, and a stretch - countsdown for 60 mins with a red needle.
+
+changes in 0.4:
+Now saves the time remaining between screen changes and app reloads
 
 Requirements:
 Streamdeck software V4.1+
@@ -19,4 +22,8 @@ background image.
 Add custom timer to the Property inspector.
 
 Known issues:
-the clock resets and the settings are lost when you go into another folder or restart the streamdeck app.
+Streamdeck SDK wont let me save in the will disapear event, so currently timers are saved every ten ish seconds.
+
+Unknown Issues:
+Many I'm sure
+

@@ -161,6 +161,14 @@ function Clock(cnv)
 		cur_ms = max_ms;
 		max_ms=jsnTime;
 	}
+	function getRemTime()
+	{
+		return cur_ms;
+	}
+	function setRemTime(remTime)
+	{
+		cur_ms = remTime;
+	}
 
 	return {
 		drawClock: drawClock,
@@ -171,6 +179,8 @@ function Clock(cnv)
 		setTimer: setTimer,
 		colors: colors,
 		resetCountdown: resetCountdown,
-		resetColors: resetColors
+		resetColors: resetColors,
+		getRemTime: getRemTime,
+		setRemTime: setRemTime
 	}
 }

@@ -80,11 +80,11 @@ var clockfaces = [
 
 ];
 var timerTypes = [
-/*	{
-		name: 'Test',
+	{
+		name: 'StreamStart',
 		max_time: 120000,
 		arcColour: "#FFFFFF"
-	},*/
+	},
 	{
 		name: 'Hydration',
 		max_time: 1200000,

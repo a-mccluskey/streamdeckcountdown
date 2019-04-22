@@ -33,36 +33,52 @@ var action = {
         if (!jsn.payload || !jsn.payload.hasOwnProperty('settings')) return;
 
         const clockIndex = jsn.payload.settings['clock_index'] || 0;
-		var timerTypeIdx = jsn.payload.settings['timerIndex'] || 0;
-		//var 
+		var timerTypeIdx = jsn.payload.settings['timer_index'] || 0;
+		//console.log("payload is: ", jsn.payload);
+		var curRemTime =  jsn.payload.settings['rem_time'] || 0;
         const clock = new AnalogClock(jsn);
 
         clock.setClockFaceNum(clockIndex);
 		clock.setClockTypeNum(timerTypeIdx);
+		//get the existing backgroundColor & timer countdown
+		//note that at this point the timer will be set to the max that it can be for the type.
+		
+		if(curRemTime>=1000) { clock.setRemTime(curRemTime); }
+		else { curRemTime=clock.getRemTime(); }
+		//give an initialised timer, ie. if the countdown is at zero
+		//then we need to reset it, if its say 2 minutes, then its prob a reloaded plugin
+		
         clock.toggleClock();
+		//this bit displays the clock
 
-        // cache the current clock
         this.cache[jsn.context] = clock;
+		// cache the current clock
 
         $SD.api.setSettings(jsn.context, {
             context: jsn.context,
-            clock_index: clockIndex
-        });
+            clock_index: clockIndex,
+			timer_index: timerTypeIdx,
+			rem_time: curRemTime
+        });//saves all the settings to initalise them
 
         $SD.api.sendToPropertyInspector(
             jsn.context,
-            { clock_index: clockIndex },
+            { clock_index: clockIndex,
+			timerIndex: timerTypeIdx },
             this.type
-        );
+        );//the clock bk colour needs to be saved in the property inspector
     },
 
     onWillDisappear: function (jsn) {
+		//called everytime the plugin is hidden, such as when the folder is changed
         let found = this.getContextFromCache(jsn.context);
         if (found) {
             // remove the clock from the cache
-            found.destroyClock();
+			found.destroyClock();
             delete this.cache[jsn.context];
         }
+		//originally I tried to do a set settings so that the remaining time would be saved, 
+		//but the SDK doesnt seem to save this setting properly - bug maybe?
     },
 
     onKeyUp: function (jsn) {
@@ -75,31 +91,40 @@ var action = {
     onSendToPlugin: function (jsn) {
         //console.log('--- OnSendToPlugin ---', jsn, jsn.payload);
         if (!jsn.payload) return;
+		//if theres no changes then its not worth doing any more.
         let clockIndex = 0;
 		let timerIDX = 0;
+		//initialise these values to zero - these will be changed later
         const clock = this.getContextFromCache(jsn.context);
+		//load the clock into a useable space
 
         if (jsn.payload.hasOwnProperty('DATAREQUEST')) {
+			//if the PI is loaded do this
             if (clock && clock.isDemo()) {
                 const arrDemoClock = clockfaces.filter(e => e.demo); // find demo-clock definition
                 clockIndex = arrDemoClock ? clockfaces.indexOf(arrDemoClock[0]) : 0;
             } else if (clock) {
                 clockIndex = clock.currentClockFaceIdx || 0;
+				timerIDX = clock.getTypeIDX() || 0;
             }
 
             $SD.api.sendToPropertyInspector(
                 jsn.context,
                 { clock_index: clockIndex,
-				timerType: timerIDX },
+				timerIndex: timerIDX },
                 this.type
             );
+			//sends all the existing values to the PI
         } else { 
+			//now if data is sent from the PI to the plugin
 			if (jsn.payload.hasOwnProperty('clock_index')) { /* if there's no clock-definitions, so simply do nothing */
 				/* set the appropriate clockface index as choosen from the popupmenu in PI */
 				const clockIdx = Number(jsn.payload['clock_index']);
 				$SD.api.setSettings(jsn.context, {
 					context: jsn.context,
-					clock_index: clockIdx
+					clock_index: clockIdx,
+					timer_index: clock.getTypeIDX(),
+					rem_time: clock.getRemTime()
 				});
 
             if (clock) {
@@ -107,13 +132,13 @@ var action = {
                 this.cache[jsn.context] = clock;
             } }//ifJSNhasOWNprop
 			if(jsn.payload.hasOwnProperty('timerIndex')) {
-				console.log("got the updated PI event");
 				$SD.api.setSettings(jsn.context, {
 					context: jsn.context,
-					timerType: Number(jsn.payload['timerIndex'])
+					timer_index: Number(jsn.payload['timerIndex']),
+					clock_index: clock.currentClockFaceIdx,
+					rem_time: clock.getRemTime()
 				});
 				if (clock) { //if the clock exists, update the clocktype number
-				console.log("clock exists, updating type");
 					clock.setClockTypeNum(Number(jsn.payload['timerIndex']));
 					this.cache[jsn.context] = clock; //save the clock
 				}					
@@ -156,7 +181,6 @@ function AnalogClock (jsonObj) {
 	
 	function resetCountdown() {
 		clock.resetCountdown();
-		
 	}//resetCountdown()
 	
 
@@ -191,6 +215,16 @@ function AnalogClock (jsonObj) {
                 }
 
                 count++;
+				if(count%10 === 0) {
+					$SD.api.setSettings(context, {
+					context: context,
+					rem_time: getRemTime(),
+					clock_index: currentClockFaceIdx,
+					timer_index: getTypeIDX()
+				});
+				//saves all the settings once every ten seconds
+				//I originally only wanted to save it when exiting the current screen but it wont let me
+				}
             }, 1000);
         } else {
             window.clearInterval(clockTimer);
@@ -220,10 +254,6 @@ function AnalogClock (jsonObj) {
         setClockFace(clockfaces[currentClockFaceIdx], isDemo);
     }
 	
-	
-	
-	
-	
 	function setClockType (newTimerType) {
 		/*a new timer type has been selected from the PI*/
         let timerType = newTimerType;
@@ -235,28 +265,27 @@ function AnalogClock (jsonObj) {
 
     function setClockTypeNum (idx) {
 		/*get the index number of the clock type*/
-        let currentClockTypeIdx= idx < timerTypes.length ? idx : 0;
-        this.timerTypeIdx = currentClockTypeIdx;
+        let currentClockTypeIdx= idx;
+        timerTypeIdx = currentClockTypeIdx;
         setClockType(timerTypes[currentClockTypeIdx]);
     }
-	
-	
-	
-	
-	
-	
-	
-	
-
     function destroyClock () {
         if (clockTimer !== 0) {
             window.clearInterval(clockTimer);
             clockTimer = 0;
         }
     }
-
+	function setRemTime(remTime) {
+		clock.setRemTime(remTime);
+	}
+	function getRemTime() {
+		return clock.getRemTime();
+	}
+	function getTypeIDX() {
+		return timerTypeIdx;
+	}
+	
     createClock();
-
     return {
         clock: clock,
         clockTimer: clockTimer,
@@ -273,6 +302,9 @@ function AnalogClock (jsonObj) {
         destroyClock: destroyClock,
         demo: demo,
 		resetCountdown: resetCountdown,
+		setRemTime: setRemTime,
+		getRemTime: getRemTime,
+		getTypeIDX: getTypeIDX,
         isDemo: isDemo
     };
 }
